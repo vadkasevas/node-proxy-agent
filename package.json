@@ -33,7 +33,7 @@
     "https-proxy-agent": "1",
     "lru-cache": "~2.6.5",
     "pac-proxy-agent": "1",
-    "socks-proxy-agent": "https://github.com/TooTallNate/node-socks-proxy-agent/commit/07cee5d0a886dbe07415ba042881f4425823462a"
+    "socks-proxy-agent": "https://github.com/TooTallNate/node-socks-proxy-agent/tarball/07cee5d0a886dbe07415ba042881f4425823462a"
   },
   "devDependencies": {
     "mocha": "2",
