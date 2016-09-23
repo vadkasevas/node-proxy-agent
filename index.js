@@ -4,7 +4,6 @@
  */
 
 var url = require('url');
-var LRU = require('lru-cache');
 var extend = require('extend');
 var Agent = require('agent-base');
 var inherits = require('util').inherits;
@@ -21,20 +20,6 @@ var SocksProxyAgent = require('socks-proxy-agent');
 
 exports = module.exports = ProxyAgent;
 
-/**
- * Number of `http.Agent` instances to cache.
- *
- * This value was arbitrarily chosen... a better
- * value could be conceived with some benchmarks.
- */
-
-var cacheSize = 20;
-
-/**
- * Cache for `http.Agent` instances.
- */
-
-exports.cache = new LRU(cacheSize);
 
 /**
  * Built-in proxy types.
@@ -66,9 +51,6 @@ function httpOrHttpsProxy (opts, secureEndpoint) {
 /**
  * Attempts to get an `http.Agent` instance based off of the given proxy URI
  * information, and the `secure` flag.
- *
- * An LRU cache is used, to prevent unnecessary creation of proxy
- * `http.Agent` instances.
  *
  * @param {String} uri proxy url
  * @param {Boolean} secure true if this is for an HTTPS request, false for HTTP
@@ -109,9 +91,6 @@ function ProxyAgent (opts) {
   }
 
   this.proxy = opts;
-  // format the proxy info back into a URI, since an opts object
-  // could have been passed in originally. This generated URI is used
-  // as part of the "key" for the LRU cache
   this.proxyUri = url.format({
     protocol: protocol + ':',
     slashes: true,
@@ -127,19 +106,7 @@ inherits(ProxyAgent, Agent);
  */
 
 function connect (req, opts, fn) {
-  // create the "key" for the LRU cache
-  var key = this.proxyUri;
-  if (opts.secureEndpoint) key += ' secure';
-
-  // attempt to get a cached `http.Agent` instance first
-  var agent = exports.cache.get(key);
-  if (!agent) {
-    // get an `http.Agent` instance from protocol-specific agent function
-    agent = this.proxyFn(this.proxy, opts.secureEndpoint);
-    if (agent) exports.cache.set(key, agent);
-  } else {
-    debug('cache hit with key: %o', key);
-  }
+  agent = this.proxyFn(this.proxy, opts.secureEndpoint);
 
   // XXX: agent.callback() is an agent-base-ism
   // TODO: add support for generic `http.Agent` instances by calling
